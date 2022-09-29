@@ -115,10 +115,7 @@ class _SecondRouteState extends State<SecondRoute> {
   String? pageContent;
 
   void scrapData() async {
-    final browser = await puppeteer.launch(
-      executablePath:
-          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    );
+    final browser = await puppeteer.launch();
 
     final page = await browser.newPage();
 
