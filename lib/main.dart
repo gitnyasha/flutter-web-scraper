@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chaleno/chaleno.dart';
+import 'package:puppeteer/puppeteer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,7 +9,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -67,17 +67,12 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  pageTitle ?? 'loading...',
+                  pageTitle ?? 'Loading...',
                   style: Theme.of(context).textTheme.bodyText1,
                 ),
                 const SizedBox(height: 20),
                 Text(
                   pageContent ?? '',
-                  style: Theme.of(context).textTheme.bodyText1,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Contents',
                   style: Theme.of(context).textTheme.bodyText1,
                 ),
                 const SizedBox(height: 20),
@@ -92,9 +87,79 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
+                ElevatedButton(
+                  child: const Text('Go to Puppeteer'),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SecondRoute()),
+                    );
+                  },
+                )
               ],
             ),
           ),
+        ));
+  }
+}
+
+class SecondRoute extends StatefulWidget {
+  const SecondRoute({super.key});
+
+  @override
+  State<SecondRoute> createState() => _SecondRouteState();
+}
+
+class _SecondRouteState extends State<SecondRoute> {
+  String? pageContent;
+
+  void scrapData() async {
+    final browser = await puppeteer.launch(
+      executablePath:
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    );
+
+    final page = await browser.newPage();
+
+    await page.goto('https://www.pinterest.com/search/pins/?q=flutter',
+        timeout: Duration.zero);
+
+    var items = page.waitForSelector('img');
+
+    var list = await items;
+
+    pageContent = await list!.propertyValue('src');
+
+    await browser.close();
+
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    scrapData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Scraping with Puppeteer'),
+        ),
+        body: SafeArea(
+          child: pageContent == null
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                  itemCount: pageContent?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    return Text(
+                      pageContent!,
+                      style: Theme.of(context).textTheme.bodyText1,
+                    );
+                  },
+                ),
         ));
   }
 }
