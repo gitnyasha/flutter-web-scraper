@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chaleno/chaleno.dart';
 import 'package:puppeteer/puppeteer.dart';
@@ -115,21 +116,30 @@ class _SecondRouteState extends State<SecondRoute> {
   String? pageContent;
 
   void scrapData() async {
-    final browser = await puppeteer.launch();
+    final browser = await puppeteer.launch(
+      executablePath:
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    );
 
-    final page = await browser.newPage();
+    // try catch block is used to handle exceptions
+    try {
+      final page = await browser.newPage();
 
-    await page.goto('https://www.pinterest.com/search/pins/?q=flutter',
-        timeout: Duration.zero);
+      await page.goto('https://www.pinterest.com/search/pins/?q=flutter',
+          timeout: Duration.zero);
 
-    var items = page.waitForSelector('img');
+      var items = page.waitForSelector('img');
 
-    var list = await items;
+      var list = await items;
 
-    pageContent = await list!.propertyValue('src');
-
-    await browser.close();
-
+      pageContent = await list!.propertyValue('src');
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } finally {
+      await browser.close();
+    }
     setState(() {});
   }
 
